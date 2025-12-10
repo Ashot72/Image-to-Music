@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Image to Music Generator</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+                    Cantarell, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                overflow: hidden;
+            }
+
+            .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 30px;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 2.5em;
+                margin-bottom: 10px;
+            }
+
+            .header p {
+                opacity: 0.9;
+                font-size: 1.1em;
+            }
+
+            .content {
+                padding: 40px;
+            }
+
+            .upload-section {
+                margin-bottom: 40px;
+            }
+
+            .upload-area {
+                border: 3px dashed #667eea;
+                border-radius: 15px;
+                padding: 40px;
+                text-align: center;
+                background: #f8f9fa;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .upload-area:hover {
+                border-color: #764ba2;
+                background: #f0f0f0;
+            }
+
+            .upload-area.dragover {
+                border-color: #764ba2;
+                background: #e8e8e8;
+            }
+
+            .upload-area input[type='file'] {
+                display: none;
+            }
+
+            .upload-icon {
+                font-size: 4em;
+                margin-bottom: 20px;
+            }
+
+            .upload-text {
+                font-size: 1.2em;
+                color: #666;
+                margin-bottom: 10px;
+            }
+
+            .upload-hint {
+                font-size: 0.9em;
+                color: #999;
+            }
+
+            .btn {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                padding: 15px 40px;
+                font-size: 1.1em;
+                border-radius: 10px;
+                cursor: pointer;
+                transition:
+                    transform 0.2s,
+                    box-shadow 0.2s;
+                margin-top: 20px;
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            }
+
+            .btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .btn-cancel {
+                background: #dc3545;
+                margin-left: 10px;
+            }
+
+            .btn-cancel:hover {
+                background: #c82333;
+                box-shadow: 0 10px 20px rgba(220, 53, 69, 0.4);
+            }
+
+            .results {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 30px;
+                margin-top: 40px;
+                align-items: start;
+            }
+
+            .result-card {
+                background: #f8f9fa;
+                border-radius: 15px;
+                padding: 25px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                display: flex;
+                flex-direction: column;
+            }
+
+            .result-card:has(.audio-player) {
+                height: fit-content;
+            }
+
+            .result-card h3 {
+                color: #667eea;
+                margin-bottom: 15px;
+                font-size: 1.3em;
+            }
+
+            .image-preview {
+                width: 100%;
+                border-radius: 10px;
+                margin-bottom: 15px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .prompt-text {
+                background: white;
+                padding: 15px;
+                border-radius: 10px;
+                border-left: 4px solid #667eea;
+                font-size: 0.95em;
+                line-height: 1.6;
+                color: #333;
+                overflow-y: auto;
+                flex: 1;
+                white-space: pre-line;
+            }
+
+            .prompt-text .keyword-label {
+                font-weight: 600;
+            }
+
+            .audio-player {
+                width: 100%;
+                margin-top: 15px;
+                border-radius: 10px;
+            }
+
+            .audio-link {
+                display: inline-block;
+                margin-top: 10px;
+                color: #667eea;
+                text-decoration: none;
+                font-weight: bold;
+                transition: color 0.2s;
+            }
+
+            .audio-link:hover {
+                color: #764ba2;
+            }
+
+            .loading {
+                text-align: center;
+                padding: 40px;
+                color: #667eea;
+            }
+
+            .spinner {
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #667eea;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                animation: spin 1s linear infinite;
+                margin: 20px auto;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .error {
+                background: #fee;
+                color: #c33;
+                padding: 15px;
+                border-radius: 10px;
+                margin-top: 20px;
+                border-left: 4px solid #c33;
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            .status {
+                text-align: center;
+                padding: 20px;
+                color: #666;
+                font-size: 1.1em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎵 Image to Music Generator</h1>
+                <p>Upload an image and generate music that matches its mood and energy</p>
+            </div>
+
+            <div class="content">
+                <div class="upload-section">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📸</div>
+                        <div class="upload-text">Click to upload or drag and drop</div>
+                        <div class="upload-hint">Supports: JPG, PNG, GIF, WEBP (max 10MB)</div>
+                        <input type="file" id="fileInput" accept="image/*" />
+                    </div>
+                    <div style="text-align: center">
+                        <button class="btn" id="generateBtn" disabled>Generate Music</button>
+                    </div>
+                </div>
+
+                <div id="status" class="status hidden"></div>
+                <div id="error" class="error hidden"></div>
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Analyzing image and generating music... This may take a minute.</p>
+                </div>
+
+                <div id="results" class="results"></div>
+            </div>
+        </div>
+
+        <script>
+            // Constants
+            const API_ENDPOINTS = {
+                FILES: '/api/files',
+                GENERATE: '/api/generate',
+            };
+
+            // DOM elements
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const generateBtn = document.getElementById('generateBtn');
+            const resultsDiv = document.getElementById('results');
+            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const statusDiv = document.getElementById('status');
+
+            // State
+            let selectedFile = null;
+            let imagePreview = null;
+
+            // API functions
+            async function loadExistingFiles() {
+                try {
+                    const response = await fetch(API_ENDPOINTS.FILES);
+                    if (!response.ok) {
+                        throw new Error('Failed to load files');
+                    }
+                    const data = await response.json();
+
+                    if (data.files && data.files.length > 0) {
+                        displayFiles(data.files);
+                    } else {
+                        resultsDiv.innerHTML = '';
+                    }
+                } catch (error) {
+                    console.error('Error loading existing files:', error);
+                }
+            }
+
+            // Display functions
+            function createPromptSection(prompt) {
+                if (!prompt) return '';
+                const escapedPrompt = escapeHtml(prompt);
+                // Convert markdown bold (**text**) to HTML bold, then make keywords bold
+                let processedPrompt = escapedPrompt.replace(
+                    /\*\*(.*?)\*\*/g,
+                    '<span class="keyword-label">$1</span>'
+                );
+                // Also handle keywords that might not be in markdown format
+                processedPrompt = processedPrompt
+                    .replace(/(Mood:)/gi, '<span class="keyword-label">$1</span>')
+                    .replace(/(Tempo:)/gi, '<span class="keyword-label">$1</span>')
+                    .replace(/(Dynamics:)/gi, '<span class="keyword-label">$1</span>')
+                    .replace(/(Main instruments:)/gi, '<span class="keyword-label">$1</span>')
+                    .replace(/(Instruments:)/gi, '<span class="keyword-label">$1</span>');
+                return `
+                <div class="result-card">
+                    <h3>📝 Music Description</h3>
+                    <div class="prompt-text">${processedPrompt}</div>
+                </div>
+            `;
+            }
+
+            function createFileCard(file) {
+                const promptSection = createPromptSection(file.prompt);
+                return `
+                <div class="result-card">
+                    <h3>📸 ${escapeHtml(file.name)}</h3>
+                    <img src="${file.imageUrl}" alt="${escapeHtml(file.name)}" class="image-preview">
+                </div>
+                ${promptSection}
+                <div class="result-card">
+                    <h3>🎵 Generated Music</h3>
+                    <audio controls class="audio-player">
+                        <source src="${file.audioUrl}" type="audio/wav">
+                        Your browser does not support the audio element.
+                    </audio>
+                    <a href="${file.audioUrl}" download="${escapeHtml(file.name)}.wav" class="audio-link">⬇️ Download WAV File</a>
+                </div>
+            `;
+            }
+
+            function displayFiles(files) {
+                if (files.length === 0) {
+                    resultsDiv.innerHTML = '';
+                    return;
+                }
+                resultsDiv.innerHTML = files.map(createFileCard).join('');
+
+                // Match music description card height to image card height
+                setTimeout(() => {
+                    const imageCards = resultsDiv.querySelectorAll(
+                        '.result-card:has(.image-preview)'
+                    );
+                    imageCards.forEach((imageCard) => {
+                        const img = imageCard.querySelector('.image-preview');
+                        if (!img) return;
+
+                        const matchHeight = () => {
+                            const imageCardHeight = imageCard.offsetHeight;
+
+                            // Find the corresponding prompt card (next sibling)
+                            let nextCard = imageCard.nextElementSibling;
+                            while (nextCard && !nextCard.querySelector('.prompt-text')) {
+                                nextCard = nextCard.nextElementSibling;
+                            }
+
+                            if (nextCard) {
+                                nextCard.style.height = `${imageCardHeight}px`;
+                            }
+                        };
+
+                        if (img.complete) {
+                            matchHeight();
+                        } else {
+                            img.onload = matchHeight;
+                        }
+                    });
+                }, 100);
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // Error handling functions
+            function showError(message) {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+            }
+
+            function hideError() {
+                errorDiv.classList.add('hidden');
+            }
+
+            // Initialize
+            function init() {
+                loadExistingFiles();
+                setupFileInput();
+                generateBtn.addEventListener('click', generateMusic);
+            }
+
+            // Start application
+            init();
+
+            // File handling functions
+            function handleFileSelect(file) {
+                if (!file.type.startsWith('image/')) {
+                    showError('Please select an image file');
+                    return;
+                }
+
+                selectedFile = file;
+                generateBtn.disabled = false;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview = e.target.result;
+                    showImagePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function setupFileInput() {
+                uploadArea.addEventListener('click', () => fileInput.click());
+
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    if (e.dataTransfer.files.length > 0) {
+                        handleFileSelect(e.dataTransfer.files[0]);
+                    }
+                });
+
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        handleFileSelect(e.target.files[0]);
+                    }
+                });
+            }
+
+            // Preview functions
+            function showImagePreview() {
+                resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <h3>📸 Uploaded Image</h3>
+                    <img src="${imagePreview}" alt="Preview" class="image-preview">
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn btn-cancel" id="cancelBtn">Cancel</button>
+                    </div>
+                </div>
+            `;
+                document.getElementById('cancelBtn').addEventListener('click', cancelUpload);
+            }
+
+            function cancelUpload() {
+                resetUploadState();
+                loadExistingFiles();
+            }
+
+            function resetUploadState() {
+                selectedFile = null;
+                imagePreview = null;
+                fileInput.value = '';
+                generateBtn.disabled = true;
+                resultsDiv.innerHTML = '';
+                hideError();
+            }
+
+            // Generation functions
+            async function generateMusic() {
+                if (!selectedFile) return;
+
+                hideError();
+                showLoading('Analyzing image with Gemini...');
+                generateBtn.disabled = true;
+
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+
+                try {
+                    const response = await fetch(API_ENDPOINTS.GENERATE, {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to generate music');
+                    }
+
+                    await loadExistingFiles();
+                    hideLoading();
+                } catch (error) {
+                    showError(error.message || 'An error occurred while generating music');
+                    hideLoading();
+                } finally {
+                    generateBtn.disabled = false;
+                }
+            }
+
+            function showLoading(message = 'Processing...') {
+                loadingDiv.classList.remove('hidden');
+                statusDiv.classList.remove('hidden');
+                statusDiv.textContent = message;
+            }
+
+            function hideLoading() {
+                loadingDiv.classList.add('hidden');
+                statusDiv.classList.add('hidden');
+            }
+
+            function showError(message) {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+            }
+
+            function hideError() {
+                errorDiv.classList.add('hidden');
+            }
+        </script>
+    </body>
+</html>
