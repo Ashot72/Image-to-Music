@@ -8,6 +8,7 @@ I can imagine a street photographer using this as a mobile app capturing images 
 #### 🎯 In this video, we’ll explore
 
 ---
+
 #### 🎶🚀 Image-to-Music with Vertex AI: How It Works
 
 📸 → 🧠 **Gemini** analyzes the image (mood, tempo, dynamics, instruments)  
@@ -17,13 +18,10 @@ I can imagine a street photographer using this as a mobile app capturing images 
 
 #### 🖥️🎧 Running the App: Live Demo
 
-**See the workflow in action:**
-
 - ⚡ Launch the app
-- 📤 Upload an image and get a matching music description  
-- 🎧 Play the generated WAV file or download it  
+- 📤 Upload an image and get a matching music description
+- 🎧 Play the generated WAV file or download it
 - 🔄 Generated items remain visible even after refresh
-
 
 #### 👉 Links & Resources
 
