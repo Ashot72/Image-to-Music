@@ -10,6 +10,9 @@ dist/
 !package-lock.json
 !tsconfig.json
 !.vscode/settings.json
-uploads/
-outputs/
+
+# Allow uploads and outputs folders to be tracked
+!uploads/
+!outputs/
+!texts/
 
